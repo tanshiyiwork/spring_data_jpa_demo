@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context" xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:aop="http://www.springframework.org/schema/aop" xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/tx
+        http://www.springframework.org/schema/tx/spring-tx.xsd
+        http://www.springframework.org/schema/aop
+        http://www.springframework.org/schema/aop/spring-aop.xsd
+        http://www.springframework.org/schema/data/jpa
+        http://www.springframework.org/schema/data/jpa/spring-jpa.xsd">
+
+    <!-- 使用annotation 自动注册bean, 并保证@Required、@Autowired的属性被注入 -->
+    <context:component-scan base-package="com">
+        <!--配置哪些注解不扫描-->
+        <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+    </context:component-scan>
+
+    <!-- 1.创建entityManagerFactory对象交给spring容器管理-->
+    <bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+        <property name="dataSource" ref="dataSource" />
+        <!--配置的扫描的包（实体类所在的包） -->
+        <property name="packagesToScan" value="com.github.model" />
+        <!-- jpa的实现厂家 -->
+        <property name="persistenceProvider">
+            <bean class="org.hibernate.jpa.HibernatePersistenceProvider"/>
+        </property>
+        <!--jpa的供应商适配器 -->
+        <property name="jpaVendorAdapter">
+            <bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter">
+                <!--配置是否自动创建数据库表 -->
+                <property name="generateDdl" value="false" />
+                <!--指定数据库类型 -->
+                <property name="database" value="MYSQL" />
+                <!--数据库方言：支持的特有语法 -->
+                <property name="databasePlatform" value="org.hibernate.dialect.MySQL5Dialect" />
+                <!--是否显示sql -->
+                <property name="showSql" value="true" />
+            </bean>
+        </property>
+        <!--jpa的方言 ：高级的特性 -->
+        <property name="jpaDialect" >
+            <bean class="org.springframework.orm.jpa.vendor.HibernateJpaDialect" />
+        </property>
+
+    </bean>
+
+    <!-- Jpa 事务配置 -->
+    <bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
+        <property name="entityManagerFactory" ref="entityManagerFactory"/>
+    </bean>
+
+    <!-- 支持annotation事务 -->
+    <tx:annotation-driven transaction-manager="transactionManager" proxy-target-class="true" order="0"/>
+
+    <tx:advice id="txAdvice" transaction-manager="transactionManager">
+        <tx:attributes>
+            <tx:method name="save*" propagation="REQUIRED"/>
+            <tx:method name="insert*" propagation="REQUIRED"/>
+            <tx:method name="update*" propagation="REQUIRED"/>
+            <tx:method name="delete*" propagation="REQUIRED"/>
+            <tx:method name="get*" read-only="true"/>
+            <tx:method name="find*" read-only="true"/>
+            <tx:method name="find*" read-only="true"/>
+            <tx:method name="*" propagation="REQUIRED" rollback-for="java.lang.Exception"/>
+        </tx:attributes>
+    </tx:advice>
+
+    <aop:config >
+        <aop:pointcut expression="execution(* *..util.jpa.impl..*(..))" id="jpaPT"/>
+        <aop:pointcut expression="execution(* *..service.impl..*(..))" id="service-pc"/>
+        <aop:advisor advice-ref="txAdvice" pointcut-ref="service-pc" order="1"/>
+        <aop:advisor advice-ref="txAdvice" pointcut-ref="jpaPT" order="1"/>
+    </aop:config>
+
+    <!-- 加载资源文件 -->
+    <bean id="propertyConfigurer"
+          class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="locations">
+            <list>
+                <value>classpath:dbconfig.properties</value>
+            </list>
+        </property>
+    </bean>
+
+    <!-- 定义数据源 -->
+    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource"
+          destroy-method="close">
+        <property name="url" value="${url}" />
+        <property name="username" value="${username}" />
+        <property name="password" value="${password}" />
+        <property name="driverClassName" value="${driverClassName}" />
+        <property name="filters" value="${filters}" />
+
+        <property name="maxActive" value="${maxActive}" />
+        <property name="initialSize" value="${initialSize}" />
+        <property name="maxWait" value="${maxWait}" />
+        <property name="minIdle" value="${minIdle}" />
+
+        <property name="timeBetweenEvictionRunsMillis" value="${timeBetweenEvictionRunsMillis}" />
+        <property name="minEvictableIdleTimeMillis" value="${minEvictableIdleTimeMillis}" />
+
+        <property name="validationQuery" value="${validationQuery}" />
+        <property name="testWhileIdle" value="${testWhileIdle}" />
+        <property name="testOnBorrow" value="${testOnBorrow}" />
+        <property name="testOnReturn" value="${testOnReturn}" />
+        <property name="keepAlive" value="${keepAlive}" />
+
+        <property name="maxOpenPreparedStatements" value="${maxOpenPreparedStatements}" />
+        <property name="removeAbandoned" value="${removeAbandoned}" />
+        <property name="removeAbandonedTimeout" value="${removeAbandonedTimeout}" />
+        <property name="logAbandoned" value="${logAbandoned}" />
+    </bean>
+
+    <!--3.整合spring dataJpa-->
+    <jpa:repositories base-package="com.github.repo"
+                      repository-impl-postfix="Impl" entity-manager-factory-ref="entityManagerFactory"
+                      transaction-manager-ref="transactionManager">
+    </jpa:repositories>
+
+    <bean id="lobHandler" class="org.springframework.jdbc.support.lob.DefaultLobHandler" lazy-init="true" />
+</beans>
