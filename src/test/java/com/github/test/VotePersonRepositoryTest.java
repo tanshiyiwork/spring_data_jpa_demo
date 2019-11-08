@@ -54,4 +54,15 @@ public class VotePersonRepositoryTest {
         }
         assertThat(page.getContent()).isNotEmpty();
     }
+
+    @Test
+    public void testQuery1() {
+        VotePersonRepository votePersonRepository = (VotePersonRepository)applicationContext.getBean("votePersonRepository");
+        Pageable pageable = PageRequest.of(0,2);
+        Page<VotePerson> page = votePersonRepository.findVotePeopleByStPersonName2("风华",pageable);
+        List<VotePerson> list = page.getContent();
+        for (VotePerson votePerson:list) {
+            System.out.println(votePerson);
+        }
+    }
 }

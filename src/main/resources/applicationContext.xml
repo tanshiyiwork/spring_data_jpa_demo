@@ -65,7 +65,6 @@
             <tx:method name="delete*" propagation="REQUIRED"/>
             <tx:method name="get*" read-only="true"/>
             <tx:method name="find*" read-only="true"/>
-            <tx:method name="find*" read-only="true"/>
             <tx:method name="*" propagation="REQUIRED" rollback-for="java.lang.Exception"/>
         </tx:attributes>
     </tx:advice>
