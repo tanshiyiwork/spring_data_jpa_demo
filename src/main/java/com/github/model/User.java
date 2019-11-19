@@ -1,4 +1,4 @@
-package com.jpa.entity;
+package com.github.model;
 
 public class User {
     private String name;

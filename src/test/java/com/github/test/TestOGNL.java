@@ -1,6 +1,7 @@
 package com.github.test;
 
-import com.jpa.entity.User;
+import com.github.model.User;
+import com.github.model.User;
 import ognl.Ognl;
 import ognl.OgnlContext;
 import ognl.OgnlException;
