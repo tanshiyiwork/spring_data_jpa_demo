@@ -32,7 +32,7 @@
         <commons.codec.version>1.9</commons.codec.version>
         <commons.net.version>3.3</commons.net.version>
         <dom4j.version>2.1.1</dom4j.version>
-        <jackson-core.version>2.9.10</jackson-core.version>
+        <jackson-core.version>2.9.10.4</jackson-core.version>
         <spring-orm.version>5.1.5.RELEASE</spring-orm.version>
         <hibernate.version>5.0.7.Final</hibernate.version>
     </properties>
